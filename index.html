@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dad_jokes</title>
+    <style>
+        #chat {
+            width: 1000px;
+            height: 500px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            margin-left: 250px;
+            background: #ffffff;
+        }
+        #input {
+            width: 900px;
+            padding: 10px;
+            margin-left: 250px;
+        }
+        button {
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+        .options {
+            margin: 10px 0;
+        }
+        .option-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            margin: 5px 0;
+            padding: 8px;
+            background: #e6f7ff;
+            border: 1px solid #91d5ff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .option-btn:hover {
+            background: #bae7ff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Генератор ужасных шуток</h1>
+    <div id="chat"></div>
+    <input type="text" id="input" placeholder="Введите начало шутки">
+    <button id="send-btn">Отправить</button>
+    <div id="options-container" class="options"></div>
+    <button id="regenerate-btn"style="display:none;">Еще варианты</button>
+
+    <script>
+        const chat = document.getElementById('chat');
+        const input = document.getElementById('input');
+        const sendBtn = document.getElementById('send-btn');
+        const optionsContainer = document.getElementById('options-container');
+        const regenBtn = document.getElementById('regenerate-btn');
+        let currentJokeStart = ''; // будем хранить начало шутки
+        // let currentOptions = null;
+        
+        // Инициализация чата
+        async function initChat() {
+            try {
+                const response = await fetch('/start_chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                addMessage('Все хорошо', 'Чат готов к использованию!');
+            } catch (error) {
+                addMessage('Ошибка', error.message);
+            }
+        }
+        
+        // Отправка сообщения
+        async function sendMessage() {
+            const message = input.value.trim();
+            if (!message) return;
+            
+            addMessage('Вы', message);
+            input.value = '';
+
+            currentJokeStart = message; // <-- СОХРАНЯЕМ НАЧАЛО ШУТКИ
+            
+            try {
+                const response = await fetch('/generate_joke', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    addMessage('Ошибка', data.error);
+                    return;
+                }
+                
+                addMessage('Бот', 'Вот несколько вариантов:');
+                displayOptions(data.options);
+                
+            } catch (error) {
+                addMessage('Ошибка', 'Не удалось подключиться к серверу');
+            }
+        }
+        
+        // Отображение вариантов
+        function displayOptions(optionsText) {
+            optionsContainer.innerHTML = '';
+            
+            // Парсим варианты (1., 2., 3.)
+            const options = optionsText.split('\n')
+                .filter(line => line.match(/^\d+\./))
+                .map(line => line.replace(/^\d+\./, '').trim());
+            
+            if (options.length === 0) {
+                addMessage('Бот', optionsText);
+                return;
+            }
+
+            regenBtn.style.display = 'inline-block'; // показываем кнопку
+
+            options.forEach((option, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = `${index + 1}. ${option}`;
+                btn.onclick = () => selectOption(index + 1, option);
+                optionsContainer.appendChild(btn);
+            });
+        }
+        
+        // Выбор варианта
+        async function selectOption(number, text) {
+            try {
+                const response = await fetch('/select_option', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ selected: number })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    addMessage('Ошибка', data.error);
+                    return;
+                }
+                
+                addMessage('Вы выбрали', `Вариант ${number}: ${text}`);
+                optionsContainer.innerHTML = '';
+                regenBtn.style.display = 'none'; // скрываем кнопку после выбора
+                
+            } catch (error) {
+                addMessage('Ошибка', 'Не удалось сохранить выбор');
+            }
+        }
+        
+        // Добавление сообщения в чат
+        function addMessage(sender, text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
+            chat.appendChild(messageDiv);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        // Обработчик клика по regenerate-btn
+        regenBtn.addEventListener('click', async () => {
+            if (!currentJokeStart) {
+            addMessage('Ошибка', 'Нет начальной фразы для регенерации');
+            return;
+            }
+            try {
+                const response = await fetch('/regenerate_joke', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message: currentJokeStart})
+                });
+                const data = await response.json();
+                if (data.error) {
+                    addMessage ('Ошибка', data.error);
+                    return;
+                };
+                addMessage ('Бот', 'Новые варианты');
+                displayOptions(data.options);
+            } catch (error) {
+                addMessage ('Ошибка', 'Не удалось перегенерировать шутки')
+            }
+        });
+ 
+        // Обработчики событий
+        sendBtn.addEventListener('click', sendMessage);
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+        
+        // Инициализация
+        initChat();
+    </script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.pyc
+*.py~
+*.pyw
+*.pyz
+*.db
+*.sqlite3
+
+# Virtual environments
+env/
+venv/
+ENV/
+.env
+
+# Flask specific
+instance/
+.webassets-cache
+
+# Logs and databases
+*.log
+*.pot
+*.err
+
+# IDE specific
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# JSON file with jokes
+joke.json
+joke.jsonl
