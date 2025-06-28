@@ -56,7 +56,6 @@
         const optionsContainer = document.getElementById('options-container');
         const regenBtn = document.getElementById('regenerate-btn');
         let currentJokeStart = ''; // будем хранить начало шутки
-        // let currentOptions = null;
         
         // Инициализация чата
         async function initChat() {
@@ -80,7 +79,7 @@
             addMessage('Вы', message);
             input.value = '';
 
-            currentJokeStart = message; // <-- СОХРАНЯЕМ НАЧАЛО ШУТКИ
+            currentJokeStart = message; // СОХРАНЯЕМ НАЧАЛО ШУТКИ
             
             try {
                 const response = await fetch('/generate_joke', {
@@ -104,11 +103,11 @@
             }
         }
         
-        // Отображение вариантов
+        // отображение вариантов
         function displayOptions(optionsText) {
             optionsContainer.innerHTML = '';
             
-            // Парсим варианты (1., 2., 3.)
+            // парсим варианты (1., 2., 3.)
             const options = optionsText.split('\n')
                 .filter(line => line.match(/^\d+\./))
                 .map(line => line.replace(/^\d+\./, '').trim());
@@ -129,7 +128,7 @@
             });
         }
         
-        // Выбор варианта
+        // выбор варианта
         async function selectOption(number, text) {
             try {
                 const response = await fetch('/select_option', {
@@ -154,7 +153,7 @@
             }
         }
         
-        // Добавление сообщения в чат
+        // добавление сообщения в чат
         function addMessage(sender, text) {
             const messageDiv = document.createElement('div');
             messageDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
@@ -162,7 +161,7 @@
             chat.scrollTop = chat.scrollHeight;
         }
 
-        // Обработчик клика по regenerate-btn
+        // обработчик клика по regenerate-btn
         regenBtn.addEventListener('click', async () => {
             if (!currentJokeStart) {
             addMessage('Ошибка', 'Нет начальной фразы для регенерации');
@@ -186,13 +185,13 @@
             }
         });
  
-        // Обработчики событий
+        // обработчики событий
         sendBtn.addEventListener('click', sendMessage);
         input.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendMessage();
         });
         
-        // Инициализация
+        // инициализация
         initChat();
     </script>
 </body>

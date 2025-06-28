@@ -4,8 +4,7 @@ import uuid
 import json
 from dotenv import load_dotenv
 import os
-# import ngrok
-# import time
+
 
 load_dotenv()
 
@@ -16,30 +15,16 @@ app.secret_key = os.getenv("SECRET_KEY")
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 system_prompt = "You are an uncle who cracks good short jokes strictly in the Russian language"
 
-# # Establish connectivity
-# listener = ngrok.forward(9000, authtoken_from_env=True)
-
-# # Output ngrok url to console
-# print(f"Ingress established at {listener.url()}")
-
 
 
 @app.route('/')
 def home():
     return app.send_static_file('index.html')
 
-# Keep the listener alive
-# @app.route('/listener')
-# def listerer():
-#     try:
-#         while True:
-#             time.sleep(1)
-#     except KeyboardInterrupt:
-#         print("Closing listener")
 
 @app.route('/start_chat', methods=['POST'])
 def start_chat():
-    # Генерируем уникальный ID чата
+    # генерируем уникальный ID чата
     session['chat_id'] = str(uuid.uuid4())
     session['current_joke'] = None
     session['options'] = None
@@ -56,7 +41,7 @@ def generate_joke():
         return jsonify({'error': 'Empty message'}), 400
     
     try:
-        # Генерируем 3 варианта шутки
+        # генерируем 3 варианта шутки
         prompt = f"""Make up three variants for hillarious punches to continue the given beggining of the joke (give them numbers 1., 2., 3.): {user_message}
         Here are some examples of funny jokes: {previous_jokes}
         WRITE IN RUSSIAN ONLY, NO LATIN LETTERS
